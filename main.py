@@ -22,7 +22,7 @@ def main():
     fps_samples = []
     if not os.path.exists(preprocessing_export_path):
         os.makedirs(preprocessing_export_path)
-    for i in tqdm(range(len(networks[:1]))):
+    for i in tqdm(range(len(networks))):
         network = networks[i]
         fps = farthest_first_sampling(network, k=10, exact=False)
         fps_samples.append(fps)
