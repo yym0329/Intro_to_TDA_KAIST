@@ -3,6 +3,49 @@ from tqdm import tqdm
 import networkx as nx
 import numpy as np
 from time import time
+from scipy.io import loadmat
+
+
+def load_and_construct_matrix(mat_path):
+    """
+    Load a .mat file and construct a graph edges weighted with euclidean distance from it.
+
+    Args:
+        mat_path (String): path to the .mat file
+
+    Returns:
+        nx.Graph: weighted and undirected graph representation of a 3D object's shape
+    """
+    # Load the .mat file
+
+    mat_data = loadmat(mat_path)
+    surface_data = mat_data["surface"]
+
+    # Extract vertices and triangle indices
+    X = surface_data["X"][0, 0].flatten()
+    Y = surface_data["Y"][0, 0].flatten()
+    Z = surface_data["Z"][0, 0].flatten()
+    vertices = np.column_stack((X, Y, Z))
+    triangles = surface_data["TRIV"][0, 0] - 1  # Adjust for 0-based indexing in Python
+
+    G = nx.Graph()
+    for i, vertex in enumerate(vertices):
+        G.add_node(i, pos=vertex)
+
+    for triangle in triangles:
+        edge1 = (triangle[0], triangle[1])
+        edge2 = (triangle[0], triangle[2])
+        edge3 = (triangle[1], triangle[2])
+
+        weight_1 = np.linalg.norm(vertices[edge1[0]] - vertices[edge1[1]])
+        weight_2 = np.linalg.norm(vertices[edge2[0]] - vertices[edge2[1]])
+        weight_3 = np.linalg.norm(vertices[edge3[0]] - vertices[edge3[1]])
+
+        G.add_edge(*edge1, weight=weight_1)
+        G.add_edge(*edge2, weight=weight_2)
+        G.add_edge(*edge3, weight=weight_3)
+
+    return G
 
 
 # It takes too long, and we don't need to use it.
@@ -36,13 +79,14 @@ def construct_geodesic_distance_matrix(G):
     return distance_matrix
 
 
-def farthest_first_sampling(G, k):
+def farthest_first_sampling(G, k, exact=False, num_nodes=0.5):
     """
     Farthest first sampling, also known as farthest first traversal.
     the distance from a point to a set is defined as the minimum of the pairwise distances to points in the set.
     Args:
         G (nx.Graph): weighted and undirected graph representation of a 3D object's shape
         k (Integer): The number of sample nodes to be selected
+        exact (Boolean): If True, use the exact algorithm, otherwise use the approximate algorithm.
     """
 
     selected_nodes = []
@@ -51,11 +95,27 @@ def farthest_first_sampling(G, k):
     selected_nodes.append(np.random.randint(n))
     # Select the rest of the nodes
     distance_memo = dict()
+    not_selected_nodes = list(range(n))
+    if not exact:
+        num_nodes_to_search = int(n * num_nodes)
     for i in tqdm(range(k - 1)):
         # Find the farthest node from the selected nodes
         farthest_node = -1
         farthest_distance = -1
-        for j in range(n):
+
+        if exact:
+            search_set = range(n)
+
+        else:
+            cands = (
+                num_nodes_to_search
+                if num_nodes_to_search < len(not_selected_nodes)
+                else len(not_selected_nodes)
+            )
+            # print("The number of candidates", cands)
+            search_set = np.random.choice(not_selected_nodes, cands, replace=False)
+
+        for j in search_set:
             if j in selected_nodes:
                 continue
             distances = []
@@ -74,5 +134,6 @@ def farthest_first_sampling(G, k):
                 farthest_distance = distance
 
         selected_nodes.append(farthest_node)
+        not_selected_nodes.remove(farthest_node)
 
     return selected_nodes
