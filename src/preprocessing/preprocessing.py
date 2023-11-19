@@ -34,3 +34,45 @@ def construct_geodesic_distance_matrix(G):
             distance_matrix[i, j] = nx.shortest_path_length(G, i, j, weight="weight")
 
     return distance_matrix
+
+
+def farthest_first_sampling(G, k):
+    """
+    Farthest first sampling, also known as farthest first traversal.
+    the distance from a point to a set is defined as the minimum of the pairwise distances to points in the set.
+    Args:
+        G (nx.Graph): weighted and undirected graph representation of a 3D object's shape
+        k (Integer): The number of sample nodes to be selected
+    """
+
+    selected_nodes = []
+    n = G.number_of_nodes()
+    # Select the first node randomly
+    selected_nodes.append(np.random.randint(n))
+    # Select the rest of the nodes
+    distance_memo = dict()
+    for i in tqdm(range(k - 1)):
+        # Find the farthest node from the selected nodes
+        farthest_node = -1
+        farthest_distance = -1
+        for j in range(n):
+            if j in selected_nodes:
+                continue
+            distances = []
+            for x in selected_nodes:
+                search_string = f"{x},{j}" if x < j else f"{j},{x}"
+                if search_string in distance_memo:
+                    distances.append(distance_memo[search_string])
+                else:
+                    distance = nx.shortest_path_length(G, j, x, weight="weight")
+                    distance_memo[search_string] = distance
+
+                    distances.append(distance)
+            distance_to_set = np.min(distances)
+            if distance_to_set > farthest_distance:
+                farthest_node = j
+                farthest_distance = distance
+
+        selected_nodes.append(farthest_node)
+
+    return selected_nodes
