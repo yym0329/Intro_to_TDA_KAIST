@@ -62,7 +62,7 @@ def shortest_path_length(G, src_tartget_array, weight="weight"):
 
 
 # It takes too long, and we don't need to use it.
-def construct_geodesic_distance_matrix(G, weight = "weight", use_parallel=False):
+def construct_geodesic_distance_matrix(G, weight="weight", use_parallel=False):
     """Construct a geodesic distance matrix from a graph. Use dijkstra algorithm to find the shortest path between two nodes.
     The network G is weighted and undirected graph representation of a 3D object's shape.
 
@@ -82,13 +82,16 @@ def construct_geodesic_distance_matrix(G, weight = "weight", use_parallel=False)
         nx.shortest_path_length(G, a[0], a[1], weight=weight)
     end = time()
     estimated_time = (end - start) * (n * n) / (num_samples)
+    print(f"Average time per calculation: {(end-start) / num_samples} sec")
     print(f"Estimated time: min, {estimated_time / 60}, sec, {estimated_time % 60}")
     distance_matrix = np.zeros((n, n))
 
     if not use_parallel:
+        print("Use single thread")
+        print(f"The current weight setting is {weight}")
         for i in tqdm(range(n)):
             for j in range(n):
-                distance_matrix[i, j] = nx.shortest_path_length(G, i, j, weight="weight")
+                distance_matrix[i, j] = nx.shortest_path_length(G, i, j, weight=weight)
 
     else:
         futures = []
@@ -102,12 +105,16 @@ def construct_geodesic_distance_matrix(G, weight = "weight", use_parallel=False)
                     ind_array[counter, 1] = j
                     counter += 1
                     if counter == max_num:
-                        futures.append(executor.submit(shortest_path_length, G, ind_array))
+                        futures.append(
+                            executor.submit(shortest_path_length, G, ind_array)
+                        )
                         counter = 0
                         ind_array = np.zeros((max_num, 2))
                     # futures.append(executor.submit(shortest_path_length, G, i, j))
         if counter != 0:
-            futures.append(executor.submit(shortest_path_length, G, ind_array[:counter]))
+            futures.append(
+                executor.submit(shortest_path_length, G, ind_array[:counter])
+            )
 
         done = 0
         for future in as_completed(futures):
