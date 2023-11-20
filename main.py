@@ -40,8 +40,12 @@ def main():
             G = load_and_construct_matrix(mat_path)
             networks.append(G)
             mat_paths.append(mat_path)
+            break
 
     network = networks[0]
+    print(
+        f"The number of nodes: {network.number_of_nodes()}, edges: {network.number_of_edges()}"
+    )
     D = construct_geodesic_distance_matrix(network, weight=None)
     # fps_samples = []
     # if not os.path.exists(preprocessing_export_path):
