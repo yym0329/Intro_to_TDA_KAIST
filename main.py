@@ -42,7 +42,7 @@ def main():
             mat_paths.append(mat_path)
 
     network = networks[0]
-    D = construct_geodesic_distance_matrix(network)
+    D = construct_geodesic_distance_matrix(network, weight=None)
     # fps_samples = []
     # if not os.path.exists(preprocessing_export_path):
     #     os.makedirs(preprocessing_export_path)
