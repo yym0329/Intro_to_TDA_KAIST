@@ -62,7 +62,7 @@ def shortest_path_length(G, src_tartget_array, weight="weight"):
 
 
 # It takes too long, and we don't need to use it.
-def construct_geodesic_distance_matrix(G):
+def construct_geodesic_distance_matrix(G, weight = "weight", use_parallel=False):
     """Construct a geodesic distance matrix from a graph. Use dijkstra algorithm to find the shortest path between two nodes.
     The network G is weighted and undirected graph representation of a 3D object's shape.
 
@@ -79,43 +79,45 @@ def construct_geodesic_distance_matrix(G):
     for i in range(num_samples):
         a = samples[i]
 
-        nx.shortest_path_length(G, a[0], a[1], weight="weight")
+        nx.shortest_path_length(G, a[0], a[1], weight=weight)
     end = time()
     estimated_time = (end - start) * (n * n) / (num_samples)
     print(f"Estimated time: min, {estimated_time / 60}, sec, {estimated_time % 60}")
     distance_matrix = np.zeros((n, n))
 
-    # for i in tqdm(range(n)):
-    #     for j in range(n):
-    #         distance_matrix[i, j] = nx.shortest_path_length(G, i, j, weight="weight")
-
-    futures = []
-    counter = 0
-    max_num = 500
-    ind_array = np.zeros((max_num, 2))
-    with ProcessPoolExecutor() as executor:
-        for i in range(n):
+    if not use_parallel:
+        for i in tqdm(range(n)):
             for j in range(n):
-                ind_array[counter, 0] = i
-                ind_array[counter, 1] = j
-                counter += 1
-                if counter == max_num:
-                    futures.append(executor.submit(shortest_path_length, G, ind_array))
-                    counter = 0
-                    ind_array = np.zeros((max_num, 2))
-                # futures.append(executor.submit(shortest_path_length, G, i, j))
-    if counter != 0:
-        futures.append(executor.submit(shortest_path_length, G, ind_array[:counter]))
+                distance_matrix[i, j] = nx.shortest_path_length(G, i, j, weight="weight")
 
-    done = 0
-    for future in as_completed(futures):
-        source, target, l = future.result()
-        distance_matrix[source, target] = l
-        done += 1
-        if done % 100 == 0:
-            print(
-                f"Done {done*max_num} out of {n*n} calculations. {done*max_num/(n*n)*100}%"
-            )
+    else:
+        futures = []
+        counter = 0
+        max_num = 500
+        ind_array = np.zeros((max_num, 2))
+        with ProcessPoolExecutor() as executor:
+            for i in range(n):
+                for j in range(n):
+                    ind_array[counter, 0] = i
+                    ind_array[counter, 1] = j
+                    counter += 1
+                    if counter == max_num:
+                        futures.append(executor.submit(shortest_path_length, G, ind_array))
+                        counter = 0
+                        ind_array = np.zeros((max_num, 2))
+                    # futures.append(executor.submit(shortest_path_length, G, i, j))
+        if counter != 0:
+            futures.append(executor.submit(shortest_path_length, G, ind_array[:counter]))
+
+        done = 0
+        for future in as_completed(futures):
+            source, target, l = future.result()
+            distance_matrix[source, target] = l
+            done += 1
+            if done % 100 == 0:
+                print(
+                    f"Done {done*max_num} out of {n*n} calculations. {done*max_num/(n*n)*100}%"
+                )
 
     return distance_matrix
 
