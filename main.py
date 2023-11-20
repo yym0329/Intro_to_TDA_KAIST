@@ -41,22 +41,24 @@ def main():
             networks.append(G)
             mat_paths.append(mat_path)
 
-    fps_samples = []
-    if not os.path.exists(preprocessing_export_path):
-        os.makedirs(preprocessing_export_path)
-    # for i in tqdm(range(len(networks))):
-    #     network = networks[i]
-    #     mat_path = mat_paths[i]
-    #     fps, distance_matrix = preprocess_matrix(
-    #         network, mat_path, preprocessing_export_path
-    #     )
-    #     fps_samples.append(fps)
+    network = networks[0]
+    D = construct_geodesic_distance_matrix(network)
+    # fps_samples = []
+    # if not os.path.exists(preprocessing_export_path):
+    #     os.makedirs(preprocessing_export_path)
+    # # for i in tqdm(range(len(networks))):
+    # #     network = networks[i]
+    # #     mat_path = mat_paths[i]
+    # #     fps, distance_matrix = preprocess_matrix(
+    # #         network, mat_path, preprocessing_export_path
+    # #     )
+    # #     fps_samples.append(fps)
 
-    with ProcessPoolExecutor() as executor:
-        for network, mat_path in zip(networks, mat_paths):
-            executor.submit(
-                preprocess_matrix, network, mat_path, preprocessing_export_path
-            )
+    # with ProcessPoolExecutor() as executor:
+    #     for network, mat_path in zip(networks, mat_paths):
+    #         executor.submit(
+    #             preprocess_matrix, network, mat_path, preprocessing_export_path
+    #         )
 
 
 if __name__ == "__main__":
