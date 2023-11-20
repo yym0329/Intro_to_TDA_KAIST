@@ -5,6 +5,29 @@ import numpy as np
 from time import time
 from scipy.io import loadmat
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
+from shape.shape import shape
+
+
+def preprocess_matrix(network, mat_path, preprocessing_export_path):
+    network
+    fps = farthest_first_sampling(network, k=200, exact=False)
+
+    distance_matrix = np.zeros((len(fps), len(fps)))
+    for j in range(len(fps)):
+        for k in range(len(fps)):
+            distance_matrix[j][k] = nx.shortest_path_length(
+                network, fps[j], fps[k], weight="weight"
+            )
+    shape_name = mat_path.split("/")[-1].split(".")[0]
+    shape_export_path = os.path.join(
+        preprocessing_export_path, "pre_geodesic_" + shape_name + ".mat"
+    )
+    shape_obj = shape(shape_name, distance_matrix)
+    shape_obj.save_to_mat(shape_export_path)
+
+    print("Shape " + shape_name + " saved to " + shape_export_path)
+    return fps, distance_matrix
 
 
 def load_and_construct_matrix(mat_path):
