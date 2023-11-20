@@ -42,22 +42,9 @@ def load_and_construct_matrix(mat_path):
         weight_2 = np.linalg.norm(vertices[edge2[0]] - vertices[edge2[1]])
         weight_3 = np.linalg.norm(vertices[edge3[0]] - vertices[edge3[1]])
 
-        if not G.has_edge(*edge1):
-            G.add_edge(*edge1, weight=weight_1)
-        else:
-            print("not included repetitoin")
-            G.add_edge(*edge1, weight=weight_1)
-        if not G.has_edge(*edge2):
-            G.add_edge(*edge2, weight=weight_2)
-        else:
-            print("not included repetitoin")
-            G.add_edge(*edge2, weight=weight_1)
-
-        if not G.has_edge(*edge3):
-            G.add_edge(*edge3, weight=weight_3)
-        else:
-            print("not included repetitoin")
-            G.add_edge(*edge3, weight=weight_3)
+        G.add_edge(edge1[0], edge1[1], weight=weight_1)
+        G.add_edge(edge2[0], edge2[1], weight=weight_2)
+        G.add_edge(edge3[0], edge3[1], weight=weight_3)
 
     return G
 
