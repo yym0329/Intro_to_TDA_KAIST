@@ -11,7 +11,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 def preprocess_matrix(network, mat_path, preprocessing_export_path):
     network
-    fps = farthest_first_sampling(network, k=10, exact=False)
+    fps = farthest_first_sampling(network, k=200, exact=False)
 
     distance_matrix = np.zeros((len(fps), len(fps)))
     for j in range(len(fps)):
@@ -26,6 +26,7 @@ def preprocess_matrix(network, mat_path, preprocessing_export_path):
     shape_obj = shape(shape_name, distance_matrix)
     shape_obj.save_to_mat(shape_export_path)
 
+    print("Shape " + shape_name + " saved to " + shape_export_path)
     return fps, distance_matrix
 
 
@@ -40,29 +41,23 @@ def main():
             G = load_and_construct_matrix(mat_path)
             networks.append(G)
             mat_paths.append(mat_path)
-            break
 
-    network = networks[0]
-    print(
-        f"The number of nodes: {network.number_of_nodes()}, edges: {network.number_of_edges()}"
-    )
-    D = construct_geodesic_distance_matrix(network, weight=None)
-    # fps_samples = []
-    # if not os.path.exists(preprocessing_export_path):
-    #     os.makedirs(preprocessing_export_path)
-    # # for i in tqdm(range(len(networks))):
-    # #     network = networks[i]
-    # #     mat_path = mat_paths[i]
-    # #     fps, distance_matrix = preprocess_matrix(
-    # #         network, mat_path, preprocessing_export_path
-    # #     )
-    # #     fps_samples.append(fps)
+    fps_samples = []
+    if not os.path.exists(preprocessing_export_path):
+        os.makedirs(preprocessing_export_path)
+    # for i in tqdm(range(len(networks))):
+    #     network = networks[i]
+    #     mat_path = mat_paths[i]
+    #     fps, distance_matrix = preprocess_matrix(
+    #         network, mat_path, preprocessing_export_path
+    #     )
+    #     fps_samples.append(fps)
 
-    # with ProcessPoolExecutor() as executor:
-    #     for network, mat_path in zip(networks, mat_paths):
-    #         executor.submit(
-    #             preprocess_matrix, network, mat_path, preprocessing_export_path
-    #         )
+    with ProcessPoolExecutor() as executor:
+        for network, mat_path in zip(networks, mat_paths):
+            executor.submit(
+                preprocess_matrix, network, mat_path, preprocessing_export_path
+            )
 
 
 if __name__ == "__main__":
