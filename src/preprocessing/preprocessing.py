@@ -62,7 +62,7 @@ def shortest_path_length(G, src_tartget_array, weight="weight"):
 
 
 # It takes too long, and we don't need to use it.
-def construct_geodesic_distance_matrix(G, weight="weight", use_parallel=False):
+def construct_geodesic_distance_matrix(G, weight="weight"):
     """Construct a geodesic distance matrix from a graph. Use dijkstra algorithm to find the shortest path between two nodes.
     The network G is weighted and undirected graph representation of a 3D object's shape.
 
@@ -73,59 +73,12 @@ def construct_geodesic_distance_matrix(G, weight="weight", use_parallel=False):
         np.array: geodesic distance matrix
     """
     n = G.number_of_nodes()
-    start = time()
-    num_samples = 5 if n >= 5 else n
-    samples = np.random.choice(n, (num_samples, 2), replace=False)
-    for i in range(num_samples):
-        a = samples[i]
 
-        nx.shortest_path_length(G, a[0], a[1], weight=weight)
-    end = time()
-    estimated_time = (end - start) * (n * n) / (num_samples)
-    print(f"Average time per calculation: {(end-start) / num_samples} sec")
-    print(f"Estimated time: min, {estimated_time / 60}, sec, {estimated_time % 60}")
+    lengths = nx.all_pairs_dijkstra_path_length(G, weight=weight)
     distance_matrix = np.zeros((n, n))
-
-    if not use_parallel:
-        print("Use single thread")
-        print(f"The current weight setting is {weight}")
-        for i in tqdm(range(n)):
-            for j in range(n):
-                distance_matrix[i, j] = nx.shortest_path_length(G, i, j, weight=weight)
-
-    else:
-        futures = []
-        counter = 0
-        max_num = 500
-        ind_array = np.zeros((max_num, 2))
-        with ProcessPoolExecutor() as executor:
-            for i in range(n):
-                for j in range(n):
-                    ind_array[counter, 0] = i
-                    ind_array[counter, 1] = j
-                    counter += 1
-                    if counter == max_num:
-                        futures.append(
-                            executor.submit(shortest_path_length, G, ind_array)
-                        )
-                        counter = 0
-                        ind_array = np.zeros((max_num, 2))
-                    # futures.append(executor.submit(shortest_path_length, G, i, j))
-        if counter != 0:
-            futures.append(
-                executor.submit(shortest_path_length, G, ind_array[:counter])
-            )
-
-        done = 0
-        for future in as_completed(futures):
-            source, target, l = future.result()
+    for source, dict in lengths:
+        for target, l in dict.items():
             distance_matrix[source, target] = l
-            done += 1
-            if done % 100 == 0:
-                print(
-                    f"Done {done*max_num} out of {n*n} calculations. {done*max_num/(n*n)*100}%"
-                )
-
     return distance_matrix
 
 
@@ -143,47 +96,23 @@ def farthest_first_sampling(G, k, exact=False, num_nodes=0.5):
     n = G.number_of_nodes()
     # Select the first node randomly
     selected_nodes.append(np.random.randint(n))
-    # Select the rest of the nodes
-    distance_memo = dict()
-    not_selected_nodes = list(range(n))
-    if not exact:
-        num_nodes_to_search = int(n * num_nodes)
+    length_matrix = construct_geodesic_distance_matrix(G, weight="weight")
     for i in tqdm(range(k - 1)):
         # Find the farthest node from the selected nodes
         farthest_node = -1
         farthest_distance = -1
 
-        if exact:
-            search_set = range(n)
-
-        else:
-            cands = (
-                num_nodes_to_search
-                if num_nodes_to_search < len(not_selected_nodes)
-                else len(not_selected_nodes)
-            )
-            # print("The number of candidates", cands)
-            search_set = np.random.choice(not_selected_nodes, cands, replace=False)
-
-        for j in search_set:
+        for j in range(n):
             if j in selected_nodes:
                 continue
             distances = []
-            for x in selected_nodes:
-                search_string = f"{x},{j}" if x < j else f"{j},{x}"
-                if search_string in distance_memo:
-                    distances.append(distance_memo[search_string])
-                else:
-                    distance = nx.shortest_path_length(G, j, x, weight="weight")
-                    distance_memo[search_string] = distance
-
-                    distances.append(distance)
+            for selected_node in selected_nodes:
+                distances.append(length_matrix[j, selected_node])
             distance_to_set = np.min(distances)
             if distance_to_set > farthest_distance:
                 farthest_node = j
-                farthest_distance = distance
 
         selected_nodes.append(farthest_node)
-        not_selected_nodes.remove(farthest_node)
+        # not_selected_nodes.remove(farthest_node)
 
     return selected_nodes
