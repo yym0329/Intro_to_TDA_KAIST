@@ -1,8 +1,8 @@
 import numpy as np
-from scipy.io import savemat
+from scipy.io import savemat, loadmat
 
 
-class shape:
+class Shape:
     def __init__(self, name, dm):
         """
         3D object with as a weighted undirected graph
@@ -19,3 +19,8 @@ class shape:
 
     def save_to_mat(self, path):
         savemat(path, {"name": self.name, "dm": self.dm})
+
+    def load_from_mat(self, path):
+        mat_data = loadmat(path)
+        self.name = mat_data["name"][0]
+        self.dm = mat_data["dm"]
