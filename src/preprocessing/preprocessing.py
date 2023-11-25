@@ -6,7 +6,7 @@ from time import time
 from scipy.io import loadmat
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
-from shape.shape import shape
+from src.shape.shape import shape
 
 
 def preprocess_matrix(network, mat_path, preprocessing_export_path):
@@ -105,7 +105,7 @@ def construct_geodesic_distance_matrix(G, weight="weight"):
     return distance_matrix
 
 
-def farthest_first_sampling(G, k, exact=False, num_nodes=0.5):
+def farthest_first_sampling(G, k, exact=False, num_nodes=0.5, verbose=False):
     """
     Farthest first sampling, also known as farthest first traversal.
     the distance from a point to a set is defined as the minimum of the pairwise distances to points in the set.
@@ -120,7 +120,12 @@ def farthest_first_sampling(G, k, exact=False, num_nodes=0.5):
     # Select the first node randomly
     selected_nodes.append(np.random.randint(n))
     length_matrix = construct_geodesic_distance_matrix(G, weight="weight")
-    for i in tqdm(range(k - 1)):
+
+    if not verbose:
+        iterator = range(k - 1)
+    else:
+        iterator = tqdm(range(k - 1))
+    for i in iterator:
         # Find the farthest node from the selected nodes
         farthest_node = -1
         farthest_distance = -1
@@ -138,4 +143,4 @@ def farthest_first_sampling(G, k, exact=False, num_nodes=0.5):
         selected_nodes.append(farthest_node)
         # not_selected_nodes.remove(farthest_node)
 
-    return selected_nodes
+    return selected_nodes, length_matrix
