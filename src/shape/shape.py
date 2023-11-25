@@ -37,9 +37,19 @@ class Shape:
             self.get_VR_diagram()
         persim.plot_diagrams(self.dgms, show=True)
 
+    def _diam(self, dgm):
+        return self.get_diameter()
+
+    def get_diameter(self):
+        return np.max(self.dm)
+
 
 def load_from_mat(path):
     mat_data = loadmat(path)
     name = mat_data["name"][0]
     dm = mat_data["dm"]
     return Shape(name, dm)
+
+
+def dDiam(shape1, shape2):
+    return np.abs(shape1.get_diameter() - shape2.get_diameter())
