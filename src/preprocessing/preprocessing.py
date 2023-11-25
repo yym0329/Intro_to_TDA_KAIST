@@ -6,7 +6,7 @@ from time import time
 from scipy.io import loadmat
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
-from src.shape.shape import shape
+from src.shape.shape import Shape
 
 
 def preprocess_matrix(network, mat_path, preprocessing_export_path):
@@ -23,7 +23,7 @@ def preprocess_matrix(network, mat_path, preprocessing_export_path):
     shape_export_path = os.path.join(
         preprocessing_export_path, "pre_geodesic_" + shape_name + ".mat"
     )
-    shape_obj = shape(shape_name, distance_matrix)
+    shape_obj = Shape(shape_name, distance_matrix)
     shape_obj.save_to_mat(shape_export_path)
 
     print("Shape " + shape_name + " saved to " + shape_export_path)
@@ -160,7 +160,7 @@ def preprocess_matrix(network, mat_path, preprocessing_export_path):
     shape_export_path = os.path.join(
         preprocessing_export_path, "pre_geodesic_" + shape_name + ".mat"
     )
-    shape_obj = shape(shape_name, distance_matrix)
+    shape_obj = Shape(shape_name, distance_matrix)
     shape_obj.save_to_mat(shape_export_path)
 
     print("Shape " + shape_name + " saved to " + shape_export_path)
