@@ -105,21 +105,43 @@ def construct_geodesic_distance_matrix(G, weight="weight"):
     return distance_matrix
 
 
-def farthest_first_sampling(G, k, exact=False, num_nodes=0.5, verbose=False):
+def construct_euclidean_distance_matrix(G):
+    n = G.number_of_nodes()
+    distance_matrix = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            distance_matrix[i, j] = np.linalg.norm(
+                G.nodes[i]["pos"] - G.nodes[j]["pos"]
+            )
+    return distance_matrix
+
+
+def farthest_first_sampling(G, k, verbose=False, metric="geodesic"):
     """
     Farthest first sampling, also known as farthest first traversal.
     the distance from a point to a set is defined as the minimum of the pairwise distances to points in the set.
     Args:
         G (nx.Graph): weighted and undirected graph representation of a 3D object's shape
         k (Integer): The number of sample nodes to be selected
-        exact (Boolean): If True, use the exact algorithm, otherwise use the approximate algorithm.
+        verbose (Boolean): Whether to show the progress bar
+        metric (String): The metric to be used for the distance calculation. Should be "geodesic" or "euclidean"
+
+    Returns:
+        list: list of selected nodes
+        np.array: geodesic distance matrix
+
     """
 
     selected_nodes = []
     n = G.number_of_nodes()
     # Select the first node randomly
     selected_nodes.append(np.random.randint(n))
-    length_matrix = construct_geodesic_distance_matrix(G, weight="weight")
+    if metric == "geodesic":
+        length_matrix = construct_geodesic_distance_matrix(G, weight="weight")
+    elif metric == "euclidean":
+        length_matrix = construct_euclidean_distance_matrix(G)
+    else:
+        raise ValueError("metric should be geodesic or euclidean")
 
     if not verbose:
         iterator = range(k - 1)
@@ -146,9 +168,9 @@ def farthest_first_sampling(G, k, exact=False, num_nodes=0.5, verbose=False):
     return selected_nodes, length_matrix
 
 
-def preprocess_matrix(network, mat_path, preprocessing_export_path):
+def preprocess_matrix(network, mat_path, preprocessing_export_path, metric="geodesic"):
     network
-    fps, dG = farthest_first_sampling(network, k=200, exact=False)
+    fps, dG = farthest_first_sampling(network, k=200, metric=metric)
 
     distance_matrix = np.zeros((len(fps), len(fps)))
 
@@ -158,7 +180,7 @@ def preprocess_matrix(network, mat_path, preprocessing_export_path):
 
     shape_name = mat_path.split("/")[-1].split(".")[0]
     shape_export_path = os.path.join(
-        preprocessing_export_path, "pre_geodesic_" + shape_name + ".mat"
+        preprocessing_export_path, f"pre_{metric}_" + shape_name + ".mat"
     )
     shape_obj = Shape(shape_name, distance_matrix)
     shape_obj.save_to_mat(shape_export_path)
@@ -168,7 +190,7 @@ def preprocess_matrix(network, mat_path, preprocessing_export_path):
 
 
 def batch_preprocess_matrix(
-    networks, mat_paths, preprocessing_export_path, num_workers=8
+    networks, mat_paths, preprocessing_export_path, num_workers=8, metric="geodesic"
 ):
     num_batches = len(networks) // num_workers + 1
     batch = []
@@ -185,7 +207,11 @@ def batch_preprocess_matrix(
             with ProcessPoolExecutor() as executor:
                 for network, mat_path in batch:
                     future = executor.submit(
-                        preprocess_matrix, network, mat_path, preprocessing_export_path
+                        preprocess_matrix,
+                        network,
+                        mat_path,
+                        preprocessing_export_path,
+                        metric=metric,
                     )
                     futures.append(future)
                 for future in as_completed(futures):
