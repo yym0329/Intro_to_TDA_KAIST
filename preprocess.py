@@ -5,7 +5,7 @@ import os
 
 def main():
     data_path = "data/nonrigid3d/"
-    preprocessing_export_path = "data/preprocessing/"
+    preprocessing_export_path = "data/preprocessing/euclidean/"
     networks = []
     mat_paths = []
     print("Loading Shapes...")
