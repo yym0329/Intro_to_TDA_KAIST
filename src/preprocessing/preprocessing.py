@@ -144,3 +144,66 @@ def farthest_first_sampling(G, k, exact=False, num_nodes=0.5, verbose=False):
         # not_selected_nodes.remove(farthest_node)
 
     return selected_nodes, length_matrix
+
+
+def preprocess_matrix(network, mat_path, preprocessing_export_path):
+    network
+    fps, dG = farthest_first_sampling(network, k=200, exact=False)
+
+    distance_matrix = np.zeros((len(fps), len(fps)))
+
+    for j in range(len(fps)):
+        for k in range(len(fps)):
+            distance_matrix[j][k] = dG[fps[j]][fps[k]]
+
+    shape_name = mat_path.split("/")[-1].split(".")[0]
+    shape_export_path = os.path.join(
+        preprocessing_export_path, "pre_geodesic_" + shape_name + ".mat"
+    )
+    shape_obj = shape(shape_name, distance_matrix)
+    shape_obj.save_to_mat(shape_export_path)
+
+    print("Shape " + shape_name + " saved to " + shape_export_path)
+    return fps, distance_matrix
+
+
+def batch_preprocess_matrix(
+    networks, mat_paths, preprocessing_export_path, num_workers=8
+):
+    num_batches = len(networks) // num_workers + 1
+    batch = []
+    tqdm_bar = tqdm(total=num_batches, desc="Preprocessing batches")
+
+    fps_samples = []
+    for i in range(len(networks)):
+        network = networks[i]
+        mat_path = mat_paths[i]
+        batch.append((network, mat_path))
+
+        if len(batch) == num_workers:
+            futures = []
+            with ProcessPoolExecutor() as executor:
+                for network, mat_path in batch:
+                    future = executor.submit(
+                        preprocess_matrix, network, mat_path, preprocessing_export_path
+                    )
+                    futures.append(future)
+                for future in as_completed(futures):
+                    fps, _ = future.result()
+                    fps_samples.append(fps)
+            batch = []
+            tqdm_bar.update(1)
+    if len(batch) > 0:
+        futures = []
+        with ProcessPoolExecutor() as executor:
+            for network, mat_path in batch:
+                future = executor.submit(
+                    preprocess_matrix, network, mat_path, preprocessing_export_path
+                )
+                futures.append(future)
+            for future in as_completed(futures):
+                fps, _ = future.result()
+                fps_samples.append(fps)
+        tqdm_bar.update(1)
+    tqdm_bar.close()
+    return fps_samples
