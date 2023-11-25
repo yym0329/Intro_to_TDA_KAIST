@@ -2,6 +2,7 @@ import numpy as np
 from scipy.io import savemat, loadmat
 import ripser
 import persim
+import gudhi
 
 
 class Shape:
@@ -18,7 +19,8 @@ class Shape:
         if type(dm) != np.ndarray:
             raise TypeError("dm must be a numpy array")
         self.dm = dm
-        self.dgms = None
+        self.dgms = self.get_VR_diagram()
+        self.diameter = self.get_diameter()
 
     def save_to_mat(self, path):
         savemat(path, {"name": self.name, "dm": self.dm})
@@ -53,3 +55,60 @@ def load_from_mat(path):
 
 def dDiam(shape1, shape2):
     return np.abs(shape1.get_diameter() - shape2.get_diameter())
+
+
+def d_E_inf(shape1, shape2):
+    """
+    Implementation of d_E_inf for 0,1,2 dimensional persistence diagrams.
+
+    Args:
+        shape1 (Shape): The first shape object
+        shape2 (Shape): The second shape object
+
+    Returns:
+        float: The E_inf distance between the two shapes
+    """
+    bottleneck_distance_zeroth = gudhi.bottleneck_distance(
+        shape1.dgms[0], shape2.dgms[0]
+    )
+    bottleneck_distance_first = gudhi.bottleneck_distance(
+        shape1.dgms[1], shape2.dgms[1]
+    )
+    bottleneck_distance_second = gudhi.bottleneck_distance(
+        shape1.dgms[2], shape2.dgms[2]
+    )
+
+    return max(
+        bottleneck_distance_zeroth,
+        bottleneck_distance_first,
+        bottleneck_distance_second,
+    )
+
+
+def d_G_wasserstein(shape1, shape2, q=1):
+    """
+    Implementation of d_G_wasserstein for 0,1,2 dimensional persistence diagrams.
+
+    Args:
+        shape1 (Shape): The first shape object
+        shape2 (Shape): The second shape object
+        q (float, optional): The order of the Wasserstein distance. Defaults to 1.
+
+    Returns:
+        float: The Wasserstein distance between the two shapes
+    """
+    wasserstein_distance_zeroth = gudhi.wasserstein_distance(
+        shape1.dgms[0], shape2.dgms[0], order=q
+    )
+    wasserstein_distance_first = gudhi.wasserstein_distance(
+        shape1.dgms[1], shape2.dgms[1], order=q
+    )
+    wasserstein_distance_second = gudhi.wasserstein_distance(
+        shape1.dgms[2], shape2.dgms[2], order=q
+    )
+
+    return max(
+        wasserstein_distance_zeroth,
+        wasserstein_distance_first,
+        wasserstein_distance_second,
+    )
