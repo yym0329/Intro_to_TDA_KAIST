@@ -1,12 +1,6 @@
 from tqdm import tqdm
-import networkx as nx
-import numpy as np
-from time import time
 from src.preprocessing.preprocessing import *
 import os
-from src.shape.shape import shape
-
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def main():
