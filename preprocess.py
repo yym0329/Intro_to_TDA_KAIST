@@ -5,7 +5,7 @@ import os
 
 def main():
     data_path = "data/nonrigid3d/"
-    preprocessing_export_path = "data/preprocessing/euclidean/"
+    preprocessing_export_path = "data/preprocessing/geodesic/"
     networks = []
     mat_paths = []
     print("Loading Shapes...")
@@ -20,7 +20,11 @@ def main():
         os.makedirs(preprocessing_export_path)
 
     batch_preprocess_matrix(
-        networks, mat_paths, preprocessing_export_path, num_workers=8
+        networks,
+        mat_paths,
+        preprocessing_export_path,
+        num_workers=8,
+        metric="geodesic",
     )
 
 
