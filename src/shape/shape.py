@@ -22,6 +22,7 @@ class Shape:
         self.dm = dm
         self.dgms = self.get_VR_diagram()
         self.diameter = self.get_diameter()
+        self.coordinates = None
 
     def save_to_mat(self, path):
         """
@@ -30,7 +31,15 @@ class Shape:
         Args:
             path (String): path to save the shape to
         """
-        savemat(path, {"name": self.name, "dm": self.dm})
+        if self.coordinates is None:
+            save_dict = {"name": self.name, "dm": self.dm}
+        else:
+            save_dict = {
+                "name": self.name,
+                "dm": self.dm,
+                "coordinates": self.coordinates,
+            }
+        savemat(path, save_dict)
 
     def load_from_mat(self, path):
         """
@@ -144,18 +153,57 @@ def d_G_wasserstein(shape1, shape2, q=1):
     Returns:
         float: The Wasserstein distance between the two shapes
     """
-    wasserstein_distance_zeroth = wasserstein_distance(
-        shape1.dgms[0], shape2.dgms[0], order=q
-    )
-    wasserstein_distance_first = wasserstein_distance(
-        shape1.dgms[1], shape2.dgms[1], order=q
-    )
-    wasserstein_distance_second = wasserstein_distance(
-        shape1.dgms[2], shape2.dgms[2], order=q
-    )
+    if q == np.inf:
+        wasserstein_distance_zeroth = gudhi.bottleneck_distance(
+            shape1.dgms[0], shape2.dgms[0]
+        )
+        wasserstein_distance_first = gudhi.bottleneck_distance(
+            shape1.dgms[1], shape2.dgms[1]
+        )
+        wasserstein_distance_second = gudhi.bottleneck_distance(
+            shape1.dgms[2], shape2.dgms[2]
+        )
+    else:
+        wasserstein_distance_zeroth = wasserstein_distance(
+            shape1.dgms[0], shape2.dgms[0], order=q
+        )
+        wasserstein_distance_first = wasserstein_distance(
+            shape1.dgms[1], shape2.dgms[1], order=q
+        )
+        wasserstein_distance_second = wasserstein_distance(
+            shape1.dgms[2], shape2.dgms[2], order=q
+        )
 
     return max(
         wasserstein_distance_zeroth,
         wasserstein_distance_first,
         wasserstein_distance_second,
+    )
+
+
+def d_G_bottleneck(shape1, shape2):
+    """
+    Implementation of d_G_bottleneck for 0,1,2 dimensional persistence diagrams.
+
+    Args:
+        shape1 (Shape): The first shape object
+        shape2 (Shape): The second shape object
+
+    Returns:
+        float: The bottleneck distance between the two shapes
+    """
+    bottleneck_distance_zeroth = gudhi.bottleneck_distance(
+        shape1.dgms[0], shape2.dgms[0]
+    )
+    bottleneck_distance_first = gudhi.bottleneck_distance(
+        shape1.dgms[1], shape2.dgms[1]
+    )
+    bottleneck_distance_second = gudhi.bottleneck_distance(
+        shape1.dgms[2], shape2.dgms[2]
+    )
+
+    return max(
+        bottleneck_distance_zeroth,
+        bottleneck_distance_first,
+        bottleneck_distance_second,
     )
