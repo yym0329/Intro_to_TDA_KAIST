@@ -7,7 +7,7 @@ from gudhi.wasserstein import wasserstein_distance
 
 
 class Shape:
-    def __init__(self, name, dm):
+    def __init__(self, name, dm, coordinates=None):
         """
         3D object with as a weighted undirected graph
 
@@ -22,7 +22,7 @@ class Shape:
         self.dm = dm
         self.dgms = self.get_VR_diagram()
         self.diameter = self.get_diameter()
-        self.coordinates = None
+        self.coordinates = coordinates
 
     def save_to_mat(self, path):
         """
