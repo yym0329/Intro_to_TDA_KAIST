@@ -178,11 +178,15 @@ def preprocess_matrix(network, mat_path, preprocessing_export_path, metric="geod
         for k in range(len(fps)):
             distance_matrix[j][k] = dG[fps[j]][fps[k]]
 
+    coordinates = np.zeros((len(fps), 3))
+    for j in range(len(fps)):
+        coordinates[j] = network.nodes[fps[j]]["pos"]
+
     shape_name = mat_path.split("/")[-1].split(".")[0]
     shape_export_path = os.path.join(
         preprocessing_export_path, f"pre_{metric}_" + shape_name + ".mat"
     )
-    shape_obj = Shape(shape_name, distance_matrix)
+    shape_obj = Shape(shape_name, distance_matrix, coordinates)
     shape_obj.save_to_mat(shape_export_path)
 
     print("Shape " + shape_name + " saved to " + shape_export_path)
