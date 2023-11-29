@@ -160,6 +160,7 @@ def farthest_first_sampling(G, k, verbose=False, metric="geodesic"):
                 distances.append(length_matrix[j, selected_node])
             distance_to_set = np.min(distances)
             if distance_to_set > farthest_distance:
+                farthest_distance = distance_to_set
                 farthest_node = j
 
         selected_nodes.append(farthest_node)

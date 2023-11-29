@@ -96,7 +96,11 @@ def load_from_mat(path):
     mat_data = loadmat(path)
     name = mat_data["name"][0]
     dm = mat_data["dm"]
-    return Shape(name, dm)
+    if "coordinates" in mat_data:
+        coordinates = mat_data["coordinates"]
+        return Shape(name, dm, coordinates)
+    else:
+        return Shape(name, dm)
 
 
 def dDiam(shape1, shape2):
