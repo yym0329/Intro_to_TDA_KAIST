@@ -14,6 +14,7 @@ class Shape:
         Args:
             name (String): name of the shape
             dm (np.array): distance matrix of the shape
+            coordinates (np.array, optional): coordinates of the shape. Defaults to None.
         """
         self.name = name
 
