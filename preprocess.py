@@ -5,7 +5,7 @@ import os
 
 def main():
     data_path = "data/nonrigid3d/"
-    preprocessing_export_path = "data/preprocessing/geodesic/"
+    preprocessing_export_path = "data/preprocessing/euclidean/"
     networks = []
     mat_paths = []
     print("Loading Shapes...")
@@ -24,7 +24,7 @@ def main():
         mat_paths,
         preprocessing_export_path,
         num_workers=8,
-        metric="geodesic",
+        metric="euclidean",
     )
 
 
