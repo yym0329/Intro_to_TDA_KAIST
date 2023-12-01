@@ -1,0 +1,14 @@
+scipy
+scikit-tda
+Cython
+ripser
+gudhi
+numpy
+tqdm
+networkx
+persim
+pot
+seaborn
+matplotlib
+pandas
+mayavi
