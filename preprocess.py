@@ -4,8 +4,15 @@ import os
 
 
 def main():
-    data_path = "data/nonrigid3d/"
-    preprocessing_export_path = "data/preprocessing/euclidean/"
+    ############################ SETTING ###############################
+    data_path = "data/nonrigid3d/"  # Path to the data
+    distance_measure = "euclidean"  # geodesic or euclidean
+    preprocessing_export_path = (
+        "data/preprocessing/euclidean/"  # Path to save the preprocessed data
+    )
+    num_workers = 8  # Number of workers to use for multiprocessing
+    ####################################################################
+
     networks = []
     mat_paths = []
     print("Loading Shapes...")
@@ -23,8 +30,8 @@ def main():
         networks,
         mat_paths,
         preprocessing_export_path,
-        num_workers=8,
-        metric="euclidean",
+        num_workers=num_workers,
+        metric=distance_measure,
     )
 
 
