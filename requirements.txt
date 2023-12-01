@@ -12,3 +12,4 @@ seaborn
 matplotlib
 pandas
 mayavi
+jupyter
