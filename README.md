@@ -1,7 +1,6 @@
 # TDA Computational Project Readme
 This is an repository for a computational project of the lecture 'introduction to Topological Data Analysis' by professor Woojin Kim of KAIST Department of Mathematical Science.
 
-```
 TDA Computational Project Readme
 Table of Contents
 
@@ -104,6 +103,7 @@ folder.
 
 geodesic and euclidean data. (in the second code cell.)
 
+```
 pip install scipy
 pip install ripser gudhi
 pip install scikit-tda
